@@ -1,0 +1,74 @@
+<my-table>
+    <div class="field is-grouped is-grouped-multiline">
+        <div class="control" each={(tag,index) in props.tag} >
+            <div class="tags has-addons" >
+                <span class="tag {this.color(index)}">{tag}</span>
+                <span class="tag is-delete" onclick={() => {props.delete(tag)}}></span>
+            </div>
+        </div>
+    </div>
+    <table class="table is-fullwidth is-hoverable" >
+        <thead>
+            <tr>
+                <th class="has-text-link" each={element in props.header}> 
+                    {element.charAt(0).toUpperCase() + element.slice(1)} 
+                    <span class="is-clickable" onclick={() => {props.click(element)}}>
+                        <span class="icon">
+                            <i class="fas fa-sort"></i>
+                        </span>
+                    </span>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="is-clickable animate" each={(etablissement,index) in props.data} onclick={(event) => {change(event, index)}} >
+                <td each={data in Object.entries(etablissement.data)}> {checkValue(data[1])}</td>
+                <td> <progress-bar select={etablissement.select}/></td>
+            </tr>     
+        </tbody>
+    </table>  
+   
+    <script>
+        import MyHeader from './my-header.riot';
+        import ProgressBar from './progress-bar.riot'
+        import anime from '../js/anime.es.js';
+        import {compare} from '../js/utils';
+        export default {
+            components: {
+                ProgressBar,
+                MyHeader
+            },
+            change(event, index) {
+                this.props.change(this.props.data[index].key)
+            },
+            colors : [
+                "has-background-primary",
+                "has-background-link-light ",
+                "has-background-danger-light",
+                "has-background-grey-dark has-text-white-bis",
+                "has-background-success-dark has-text-white-bis",
+            ],
+            color(index) {
+                return this.colors[index]
+            },
+            checkValue(value) {
+                if(Number.isInteger(value) && value < 0)
+                    return "NR"
+                return value
+            },
+            onUpdated() {
+                let target = this.$$('.animate').slice(0,50)
+                anime({
+                    targets: target,
+                    translateY: [-50, 0],
+                    opacity: [0, 1],
+                    easing: 'easeOutElastic(2, 0.3)',
+                    delay: anime.stagger(50)
+                });            
+            },
+            shouldUpdate(newProps,oldProps) {
+                return JSON.stringify(oldProps.tag) != JSON.stringify(newProps.tag) || !compare(oldProps.data, newProps.data);
+            }
+        }
+    </script>
+</my-table>

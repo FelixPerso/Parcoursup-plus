@@ -1,0 +1,67 @@
+<search-list>
+
+    <div class="control has-icons-left">
+        <input class="input" type="search" placeholder="Formation" id="input" oninput={debounceFunction}>
+        <span class="icon is-small is-left">
+            <i class="fas fa-search"></i>
+        </span>
+    </div>
+
+    <my-list label={props.label} formations={state.formations} onChange={onChange} onBack={onBack} end={props.end} start={props.start} />
+    
+    <script>
+        import MyList from './list.riot'
+        import {debounce} from '../js/utils.js'
+
+        export default {
+            components : {
+                MyList
+            },
+
+            state : {
+                filter : '',
+                formations : []
+            },
+
+            onMounted(props, state) {
+                this.debounceFunction = debounce(this.filter,200)
+            },
+            onBeforeUpdate(props, state){
+                state.formations = this.filterList(props.formations)
+            },
+            filter(e) {
+                this.state.filter = this.$('#input').value 
+                this.state.change = true
+                this.update()
+            }, 
+
+            filterList(data) {
+                if(Object.keys(data).length == 0)
+                    return []
+                return data.filter(data => data.name.toUpperCase().includes(this.state.filter.toUpperCase()))
+            },
+            
+            shouldUpdate(newProps, oldProps) {
+                if(newProps.end || this.state.change) {
+                    this.state.change = false
+                    return true 
+                }
+                //Marche uniquement pour notre utilisation, il faut changer pour une liste dont le titre ne change pas, pas optimisé
+                return newProps.label !== oldProps.label && ( oldProps.formations.length !== newProps.formations.length || JSON.stringify(newProps.formations) !== JSON.stringify(oldProps.formations))
+            }, 
+            onChange(index) {
+                this.props.onChange(index)
+                if(!this.props.end)
+                    this.clear()
+            },
+            onBack() {
+                this.clear()
+                this.props.onBack()
+            },
+            clear() {
+                this.state.filter = ''
+                this.$('#input').value = ''
+            }
+        }
+    </script>
+</search-list>

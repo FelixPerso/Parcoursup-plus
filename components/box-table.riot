@@ -1,0 +1,232 @@
+<box-table>
+    <div class="box">
+        <!-- Carte --> 
+        <my-map etablissements={state.dataForMap} gps={{...state.filterPosition}} click={clicked}/>
+        <!-- Barres de recherche --> 
+        <div class="field is-flex is-justify-content-space-between mt-5">
+            <!-- Adresse --> 
+            <formulaire-adresse filter={state.filterPosition} 
+                                findAddress={findAddress} 
+                                options={state.addressOptions} 
+                                submitForm={confirmAddress}/>
+            <!-- Nom établissement --> 
+            <div class="control has-icons-left">
+                <input class="input" type="search" placeholder="établissement" id="myInput" oninput={debounceFunction}>
+                <span class="icon is-small is-left">
+                    <i class="fas fa-search"></i>
+                </span>
+            </div>
+        </div>
+        <!-- Tableau --> 
+        <div class="scrollable" style={"overflow-x: auto"}>
+            <my-table header={Object.keys(state.sortedBy)} data={state.dataForTable} change={clicked} click={addTag} tag={state.tag} delete={deleteTag}/>
+        </div>
+        <!-- Modal --> 
+        <modal close={close} if={state.clicked}> 
+            <template slot="content">
+                <div class="columns is-mobile">
+                    <div class="column is-two-thirds content mb-0">
+                        <p class="has-text-weight-bold">
+                            {state.modal.title} 
+                            <span class="tag {state.modal.selectivite.includes("non") ? "is-primary" : "is-danger"}">{state.modal.selectivite}</span>
+                        </p>
+                        <div each={element in state.modal.text}>  
+                            <modal-text title={element.title} text={element.text} />
+                        </div>
+                        <modal-text title={state.modal.list.title} />
+                        <ul> 
+                            <li each={element in state.modal.list.data}> {element.title} : {element.text} </li>
+                        </ul>
+                        <p>Lien de la formation sur <a href="{state.modal.url}" target="_blank">parcoursup</a></p>
+                    </div> 
+                    <div class="column">
+                        <p class="has-text-weight-bold"> Vitesse de remplissage</p>
+                        <timeline dates={state.modal.dates}/>
+                    </div>
+                </div>   
+            </template>
+            <template slot="footer"> 
+                <bar-chart elements={state.modal.genre.elements} label={state.modal.genre.label}/>
+                <bar-chart elements={state.modal.bac.elements} label={state.modal.bac.label}/>
+                <bar-chart elements={state.modal.mention.elements} label={state.modal.mention.label}/>
+            </template>
+        </modal>
+    </div>
+
+    <script >
+        import MyTable from './my-table.riot'
+        import Modal from './modal.riot'
+        import Timeline from "./timeline.riot"
+        import ProgressBar from "./progress-bar.riot"
+        import ModalText from "./modal-text.riot"
+        import BarChart from "./bar-chart.riot"
+        import MyMap from "./my-map.riot"
+        import FormulaireAdresse from "./formulaire-adresse.riot"
+        import {debounce, filterForModal, moyenne, filterCoordinates} from '../js/utils.js'
+        import {fetchAddress, findAddress} from '../js/model.js'
+        import anime from '../js/anime.es.js';
+
+        export default {
+            components: {
+                MyTable,
+                Modal,
+                Timeline,
+                ProgressBar,
+                ModalText,
+                BarChart,
+                FormulaireAdresse,
+                MyMap
+            },
+            state :  {
+                sortedBy : {
+                    "nom" : 0,
+                    "ville" : 0,
+                    "dpt" : 0,
+                    "moyenne" : 0,
+                    "selectivité" : 0
+                },
+                tag : [],
+                modal : [],
+                dataForTable : [],
+                clicked : false,
+                filter : "",
+                filterPosition : {
+                    address : null,
+                    postcode : null,
+                    coordinates : [],
+                    radius : null
+                },
+                dataForMap : []
+            },
+            onBeforeUpdate(props, state){
+                state.dataForTable = this.filterForTable(props.data)
+            },
+            onMounted() {
+                this.debounceFunction = debounce(this.filter,500)
+                this.findAddress = debounce(async (e) => {
+                    let input = this.$("#input-adresse")
+                    if(input.value.length < 3) {
+                        if(this.options?.length != 0)
+                            this.showAddressOptions([])
+                        return
+                    }
+                    
+                    this.showAddressOptions(await fetchAddress(input.value))
+                },300)
+                this.state.dataForTable = this.filterForTable(this.props.data)
+            },
+            shouldUpdate(nextProps, prevProps) {
+                if(nextProps.titre != prevProps.titre) {
+                    this.state.filter = ""
+                    this.$('#myInput').value = "";
+                }
+                return true;
+            },
+            filterForTable(data) {
+                if(Object.keys(data).length == 0)
+                    return
+                let dataFields = data.map((obj,index) => ({...obj.fields, "index" : index}))
+                dataFields = dataFields.filter(data => data.g_ea_lib_vx.toUpperCase().includes(this.state.filter.toUpperCase()))
+
+                if(this.state.filterPosition.coordinates.length == 2) {
+                    dataFields = filterCoordinates(dataFields, this.state.filterPosition.coordinates, this.state.filterPosition.radius)
+                }
+
+                let coordinateData = dataFields.map(obj => ({
+                    "coordinate" : obj.g_olocalisation_des_formations,
+                    "nom" : obj.g_ea_lib_vx,
+                    "index" : obj.index
+                }))
+
+                this.state.dataForMap = coordinateData
+                
+                let filtered = dataFields.map(obj => ({ 
+                    data : {
+                            nom: obj.g_ea_lib_vx, 
+                            ville : obj.ville_etab,
+                            dpt : parseInt(obj.dep),
+                            moyenne : moyenne(obj) || -1
+                        },
+                    select: obj.taux_acces_ens || -1, 
+                    key : obj.index
+                }));
+
+                for (key in this.state.sortedBy) {
+                    if (this.state.sortedBy[key] == 0) 
+                        continue
+                    filtered.sort((a,b) => this.sortByKey(a, b, key))
+                }
+                return filtered
+            },
+            sortByKey(a, b, key) {
+                console.log(a)
+
+                if (key == "selectivité"){
+                    return (a.select - b.select) * this.state.sortedBy[key]
+                }
+                if(typeof a.data[key] === "string") {
+                    if (a.data[key].toUpperCase() < b.data[key].toUpperCase()) return -1 * this.state.sortedBy[key]
+                    else if (a.data[key].toUpperCase() > b.data[key].toUpperCase()) return 1 *  this.state.sortedBy[key]
+                    else return 0;
+                }
+                return (a.data[key] - b.data[key]) * this.state.sortedBy[key]
+            },
+            resetAddressFilter() {
+                this.state.filterPosition.address = null
+                this.state.filterPosition.postcode = null
+                this.state.filterPosition.radius = null
+                this.state.filterPosition.coordinates = []
+                this.update()
+            },
+            async confirmAddress(address = "", postcode = 0, radius = 0) {
+                this.state.addressOptions = []
+                if(!address || address.length < 2) {
+                    this.resetAddressFilter()   //Reset
+                    return
+                }
+                let data = await findAddress(address, postcode)
+                if(data == -1 || data.features.length < 1) {
+                    this.resetAddressFilter()   //Reset
+                    return
+                }
+                this.state.filterPosition.address = data.features[0].properties.name
+                this.state.filterPosition.postcode = data.features[0].properties.postcode
+                this.state.filterPosition.coordinates = data.features[0].geometry.coordinates
+                this.state.filterPosition.radius = radius
+                this.update()
+            },
+            filter(e) {
+                this.state.filter = this.$('#myInput').value 
+                this.update()
+            }, 
+            showAddressOptions(options) {
+                this.state.addressOptions = options.features
+                this.update()
+            },
+            addTag(key) {
+                if(this.state.sortedBy[key] == 0){
+                    this.state.sortedBy[key] = 1;
+                    this.state.tag = [...this.state.tag,key]
+                }
+                else
+                    this.state.sortedBy[key] *= -1
+                this.update()
+            },
+
+            deleteTag(key) {
+                let index = this.state.tag.indexOf(key)
+                this.state.tag = [...this.state.tag]
+                this.state.tag.splice(index,1)
+                this.state.sortedBy[key] = 0;
+                this.update()
+            },
+            clicked(index) { 
+                this.update({clicked : true, modal : filterForModal(this.props.data[index].fields)})
+            },
+            close() {
+                this.update({clicked : false})
+            }
+        }   
+
+    </script>
+</box-table> 

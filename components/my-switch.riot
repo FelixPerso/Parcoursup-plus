@@ -1,0 +1,51 @@
+<my-switch>
+    <label>
+        <input type="checkbox" id="switch" onclick={props.onClick}/>
+    </label>
+<style>
+        input[type=checkbox]{
+            height: 0;
+            width: 0;
+            visibility: hidden;
+        }
+
+        label {
+            cursor: pointer;
+            width: 4.5rem;
+            height: 2.25rem;
+            background: black;
+            display: block;
+            border-radius: 34px;
+            position: relative;
+            padding: 5%;
+            outline-style: solid;
+            outline-color: grey;
+
+        }
+
+        label:after {
+            content: '';
+            position: absolute;
+            left: 5%;
+            width:  2rem;
+            height:  2rem;
+            background: #fff;
+            border-radius: 50%;
+            transition: 0.5s;
+        }
+
+        label:has(input:checked) {
+            background: white;
+        }
+ 
+        label:has(input:checked):first-of-type:after{
+            background : black;
+            left: calc(100% - 5%);
+            transform: translateX(-100%);
+        }
+
+        label:active:after {
+            width: 50%;
+        }
+    </style>
+</my-switch>

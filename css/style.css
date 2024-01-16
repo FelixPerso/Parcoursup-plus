@@ -1,0 +1,39 @@
+@import url(leaflet.css);
+@import url(bulma-slider.min.css);
+@import url(MarkerCluster.Default.css);
+
+.scrollable {
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* width */
+.scrollable::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+.scrollable::-webkit-scrollbar-track {
+  border-radius: 10px;
+  background: #f1f1f1;
+}
+
+/* Handle */
+.scrollable::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: #888;
+}
+
+/* Handle on hover */
+.scrollable::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+nav {
+  transition-duration: 1s;
+}
+
+.theme-transition {
+  transition: all 1s ease;
+}

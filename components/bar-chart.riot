@@ -1,0 +1,58 @@
+<bar-chart>
+    <!-- Bar chart -->
+    <div class="bar-chart block m-5">
+        <template if={state.hasMinimumData}>
+            <!-- Label -->
+            <div class="has-text-centered block is-size-5">
+                <h2 class="is-unselectable">
+                    {props.label}
+                </h2> 
+            </div>
+            <!-- Graphique -->
+            <div class="is-size-7">
+                <!-- Barres -->
+                <div class="columns is-mobile is-vcentered">
+                    <template each={element in props.elements} if={element.percentage > 0}>
+                        <div class="column is-narrow ml-1 mr-1 p-0 is-flex-shrink-1" style="width:{element.percentage}%;background-color:{element.color};"">
+                            <p class="has-text-centered m-1 {element.percentage > 2 ? "has-text-white" : null} is-unselectable">{element.percentage}%</p>
+                        </div>
+                    </template>
+                </div>
+                <!-- Légende -->
+                <div class="columns is-mobile is-justify-content-center">
+                    <template each={element in props.elements}>
+                        <div class="column is-narrow">
+                            <span class="icon-text">
+                                <span title={element.title} class="icon" style="background-color:{element.color}"></span>
+                                <span class="is-unselectable">{element.name}</span>
+                            </span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </template>
+        <!-- Texte si pas de données en entrée -->
+        <template if={!state.hasMinimumData}>
+            <h3>Pas assez de données</h3>
+        </template>
+    </div>
+    <script>
+        export default {
+            onBeforeMount(props, state) {
+                this.state.hasMinimumData = this.detectMinimumData()
+            },
+            onBeforeUpdate() {
+                this.state.hasMinimumData = this.detectMinimumData()
+            },
+            detectMinimumData() {
+                if(!this.props.elements)
+                    return false
+                let sum = 0
+                for(element of this.props.elements) {
+                    sum += element.percentage
+                }
+                return sum > 0
+            }
+        }
+    </script>
+</bar-chart>

@@ -1,0 +1,31 @@
+<loader>
+    <div class="is-loading p-0 m-0"></div>
+    <style>
+        div.is-loading {
+            position: fixed;
+            z-index: 999;
+            overflow: show;
+            margin: auto;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+        }
+
+        div.is-loading:after {
+            animation: spinAround 500ms infinite linear;
+            border: 2px solid hsl(0, 0%, 0%);
+            border-radius: 9999px;
+            border-right-color: transparent;
+            border-top-color: transparent;
+            content: "";
+            display: block;
+            position: relative;
+            top: calc(50% - 5em);
+            left: calc(50% - 5em);
+            width: 10em;
+            height: 10em;
+            border-width: 0.25em;
+        }
+    </style>
+</loader>

@@ -1,0 +1,28 @@
+<modal>
+    <div class="modal is-active">
+        <div class="modal-background" onclick={props.close}></div>
+        <div class="modal-card">
+            <div class="modal-content">
+                <div class="box">
+                    <slot name="content" />
+                    <slot name="footer" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        import anime from '../js/anime.es.js';
+
+        export default {
+            onMounted(props) {
+                anime({
+                    targets: this.$('.modal-card'),
+                    translateY: [-200, 0],
+                    opacity: [0, 1],
+                    delay: 50,
+                    duration: 1500
+                });
+            }
+        }
+    </script>  
+</modal>

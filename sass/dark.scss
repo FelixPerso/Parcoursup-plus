@@ -1,0 +1,70 @@
+@charset "utf-8";
+@import "../node_modules/bulma/sass/utilities/initial-variables.sass";
+@import "../node_modules/bulma/sass/utilities/_all.sass";
+
+$scheme-main: black;
+
+$scheme-main-bis : $dark;
+$scheme-main-ter : $dark;
+
+$scheme-invert: $white;
+$scheme-invert-bis: $white;
+$scheme-invert-ter: $white;
+
+$text-light: rgb(116, 116, 116);
+//text
+$text : $white;
+
+//input
+$input-placeholder-color : rgba(255, 255, 255, 0.445);
+$input-color: $white;
+
+//table
+$table-color: $white;
+$table-row-hover-background-color: $white;
+
+//box
+
+//button
+$button-color : $black;
+$button-background-color: $white;
+$button-hover-color: $white;
+$button-text-hover-background-color: $black;
+
+//tag
+$tag-background-color: $white;
+$tag-color: $black;
+
+//label
+$label-color: $white;
+
+//shadow 
+$box-shadow : 0 0.5em 1em -0.125em rgba(255, 255, 255, 0.1), 0 0px 0 1px rgba(255, 255, 255, 0.02);
+
+@import "../node_modules/bulma/bulma.sass";
+
+.table.is-hoverable tbody tr:hover {
+    color: $black;
+}
+
+.button:hover {
+    background-color: $black;
+}
+
+.has-background-light {
+    background-color: rgb(66, 66, 66) !important;
+}
+
+.list {
+    color: $white;
+    background-color: $black  !important;
+}
+
+div.is-loading:after {
+    animation: spinAround 500ms infinite linear;
+    border: 2px solid #fff !important;
+    border-radius: 9999px;
+    border-right-color: transparent !important;
+    border-top-color: transparent !important;
+}
+

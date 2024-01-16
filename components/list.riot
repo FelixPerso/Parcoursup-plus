@@ -1,0 +1,54 @@
+<my-list>
+  <div class="box m-3 scrollable">
+	<!-- En tête -->
+    <div class="columns is-mobile is-vcentered">
+		<!-- Titre -->
+		<div class="column p-1">
+			<p class="menu-label is-unselectable">{props.label}</p>
+		</div>
+		<!-- Bouton Retour-->
+		<div class="column p-1" >
+			<span onclick={props.onBack} class="button mr-2 is-pulled-right is-unselectable" if={!props.start}>
+				<i class="fas fa-angle-left is-size-4"></i>
+			</span>
+		</div>
+	</div>
+	<!-- Liste -->
+    <ul class="menu-list">
+		<li class="columns is-vcentered" each={(formation,index) in props.formations}>
+			<a onclick={(event) => {change(event, formation.index)}} class="column is-unselectable {(props.end && formation.index === state.index)? "is-active" : null}">
+				{formation.name} <span class="tag has-background-primary is-pulled-right has-text-white">{formation.count}<span>
+			</a>
+		</li>
+    </ul>
+  </div>
+  <script>
+    import anime from '../js/anime.es.js';
+
+    export default {
+		onBeforeMount(props, state) {
+			// initial state
+			this.state = {
+				index: null
+			}
+			this.onClick = props.onChange
+		},
+        onUpdated(props) {
+            if(!props.end) {
+                anime({
+                targets: this.$$('a'),
+                translateX: [-200, 0],
+                opacity: [0, 1],
+                delay: anime.stagger(50),
+                duration: 1000
+            });
+            }
+            
+        },
+		change(event, index) {
+			this.state.index = index
+			this.onClick(index) // onClick va update (async)
+		}
+    }
+  </script>
+</my-list>

@@ -1,0 +1,7 @@
+<breadcrumb>
+    <nav class="{props.classes} breadcrumb has-arrow-separator is-centered" aria-label="breadcrumbs">
+        <ul>
+            <li each={(name, index) in props.list} if={name} class="{index === props.list.length - 1? "is-active" : null}"><a>{name}</a></li>
+        </ul>
+    </nav>
+</breadcrumb>

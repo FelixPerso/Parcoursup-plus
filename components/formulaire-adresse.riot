@@ -1,0 +1,149 @@
+<formulaire-adresse>
+    <!-- Bouton ouverture du modal -->
+    <button class="button {props.filter.address ? "is-danger" : null}" onclick={openModal}>GPS</button>
+    <!-- Modal -->
+    <modal close={closeModal} if={state.show}>
+        <!-- Contenu du slot -->
+        <template slot="content">
+            <!-- Formulaire -->
+            <form onsubmit={submitForm}>
+                <!-- Barre de recherche -->
+                <div class="field">
+                    <label class="label">Adresse</label>
+                    <div class="control has-icons-left" >
+                        <input id="input-adresse" type="search" class="input" oninput={props.findAddress} onfocus={showList} onfocusout={focusOut} placeholder="Votre adresse" autocomplete="off" value="{props.filter.address ? props.filter.address : null}" />
+                        <div class="list" if={state.showList}>
+                            <ul class="menu-list">
+                                <li each={(element,index) in props.options} >
+                                    <a onclick={() => {autocomplete(element.properties.label,element.properties.postcode)}}> 
+                                        <span class="is-align-content-center">
+                                            <i class="fas {getIcon(element.properties.type)}"></i>
+                                            {element.properties.name} 
+                                        </span>
+                                        <span class="is-pulled-right">{element.properties.postcode}</span>
+                                    </a>     
+                                </li>
+                            </ul>
+                        </div>
+                        <span class="icon is-small is-left">
+                            <i class="fas fa-search-location"></i>
+                        </span>
+                    </div>
+                </div>
+                <!-- Code postal -->
+                <div class="field">
+                    <label class="label">Code postal</label>
+                    <div class="control">
+                        <input class="input" id="code" value="{props.filter.postcode ? props.filter.postcode : "Code postal"}" disabled/>
+                    </div>
+                </div>
+                <!-- Slider -->
+                <div class="field">
+                    <label class="label">Rayon de recherche</label>
+                    <div class="control is-flex is-align-items-center">
+                        <span class="icon icon is-large">
+                            <i class="far fa-2x fa-dot-circle"></i>
+                        </span>
+                        <input id="slider" class="slider" type="range" min="20" max="50" step="10" value="{props.filter.radius ? props.filter.radius : 40}" oninput={showValue}>
+                        <span id="pourcentage" class="tag"></span>
+                    </div>
+                </div>
+                <!-- Boutons -->
+                <div class="field is-grouped is-grouped-centered">
+                    <div class="control">
+                        <button class="button is-size-6 is-primary" type="submit"> 
+                            <span class="icon">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <span>Rechercher</span>
+                        </button>
+                    </div>
+                    <div class="control">
+                        <button class="button is-size-6 is-danger" onclick={reset}>
+                            <span class="icon">
+                                <i class="fas fa-sync"></i>
+                            </span>
+                            <span>Réinitialiser</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </template>
+    </modal>
+    <script>
+        import Modal from "./modal.riot"
+        export default {
+            components : {
+                Modal
+            },
+            onMounted() {
+                this.state.show = false
+                this.state.showList = false
+            },
+            openModal() {
+                this.state.show = true
+                this.update()
+                this.showValue()
+            },
+            closeModal() {
+                this.state.show = false
+                this.update()
+            },
+            showValue() {
+                let pourcentage = this.$("#pourcentage")
+                pourcentage.textContent = `${this.$("#slider").value} KM`
+            },
+            showList() {
+                this.state.showList = true
+                this.update()
+            },
+            hideList() {
+                this.state.showList = false
+                this.update()
+            },
+            focusOut() {
+                if(this.$("li:hover") != null)
+                    return
+                this.hideList()
+            },
+            autocomplete(adresse,postcode) {
+                let option = this.$("#code")
+                let inputAdresse = this.$("#input-adresse")
+                inputAdresse.value = adresse
+                option.value = postcode
+                this.hideList()
+            },
+            getIcon(type) {
+                if(type === "street")
+                    return "fa-road"
+                else if(type === "municipality")
+                    return "fa-city"
+                else if(type === "housenumber")
+                    return "fa-house"
+            },
+            submitForm(e) {
+                e.preventDefault();
+                // [0] : adresse, [1] : code postal, [2] : rayon
+                this.props.submitForm(e.srcElement[0].value,e.srcElement[1].value,e.srcElement[2].value)
+                this.closeModal()
+            },
+            reset(e) {
+                e.preventDefault();
+                //Envoie le formulaire vide (réinitialise la carte)
+                this.props.submitForm()
+                this.closeModal()
+            }
+        }
+    </script>
+    <style>
+        .list {
+            background-color : white;
+            position : absolute;
+            top : 100%;
+            left : 0%;
+            right : 0%;
+            z-index : 40;
+        }
+        
+    </style>
+</formulaire-adresse>

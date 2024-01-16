@@ -1,0 +1,168 @@
+<my-app>
+    <!-- Logo -->
+    <my-header/>
+    <!-- Loader -->
+    <loader if={state.loading}/>
+    <!-- Fil d'Ariane -->
+    <breadcrumb classes={"my-5"} list={[...this.state.list.stack, state.recap]}/>
+
+    <!-- Corps -->
+    <div class="columns">
+        <!-- Liste -->
+        <div class="column is-4 m-5 ">
+            <search-list label={state.list.label} formations={filterIndex(state.list.formations)} onChange={onChange} onBack={onBack} end={state.recap != ""} start={state.list.stack.length === 0}/>
+            <!-- <search-list label={"Toutes les formations"} formations={filterIndex(state.list.allFormations)} onChange={onChange} onBack={onBack} end={state.recap != ""} start={state.list.stack.length === 0}/> -->
+        </div>
+        <!-- Récapitulatif, tableau et carte -->
+        <div class="column m-5" if={state.recap}>
+            <formation-recap data={state.recap_data}/>
+            <box-table data={state.table_data} titre={state.recap}/>
+        </div>
+    </div>
+    <div class="fixed">
+        <my-switch onClick={toggleMode}/> 
+    </div>
+    <script>
+        import FormationRecap from './formation-recap.riot'
+        import Modal from './modal.riot'
+        import BoxTable from './box-table.riot'
+        import SearchList from './search-list.riot'
+        import Breadcrumb from './breadcrumb.riot'
+        import Loader from './loader.riot'
+        import MyHeader from './my-header.riot'
+        import MySwitch from './my-switch.riot'
+        import {fetchFiliere, fetchFiliereDetail, fetchFiliereTDetail, fetchInfosFormation, fetchAllFormations} from '../js/model.js'
+        import {formationSummary, toggleLight} from '../js/utils.js'
+
+
+
+        export default {
+            components : {
+                FormationRecap,
+                Modal,
+                BoxTable,
+                SearchList,
+                Loader,
+                Breadcrumb,
+                MyHeader,
+                MySwitch
+            },
+            state : {
+                loading : false,
+                list : {
+                    label: "",
+                    formations:[],
+                    // allFormations:[],
+                    stack: [],
+                    forma_detail: ""
+                },
+                table_data : {},
+                table_title : "",
+                recap_data : {},
+                recap : ""
+               
+            },
+            onChange(index) {
+                let name = this.state.list.formations[index].path
+                let count = this.state.list.formations[index].count
+                if(this.state.list.stack.length === 0) {
+                    this.state.list.stack.push(name)
+                    this.getFiliereDetail(name)
+                } else if (this.state.list.stack.length === 1) {
+                    this.state.list.stack.push(name)
+                    this.getFiliereTDetail(this.state.list.stack[0], name)
+                } else {
+                    if(this.state.recap == name)
+                        return
+                    this.getInfosForma(this.state.list.stack[0],this.state.list.stack[1],name,count)              
+                }
+                this.changeLabel()
+            },
+            onBack() {
+                if(this.state.list.stack.length === 0) 
+                    return
+                let name = this.state.list.stack.pop()
+                if(this.state.list.stack.length === 0)
+                    this.getFiliere()
+                else if (this.state.list.stack.length === 1){
+                    this.state.recap = "" // Sera mis à jour après l'update label
+                    this.getFiliereDetail(this.state.list.stack[0], name)
+                }
+                this.changeLabel()
+            },
+            onMounted(props, state) {
+                this.getFiliere()
+                this.getAllFormations()
+                this.changeLabel()
+            },
+            changeLabel() {
+                switch (this.state.list.stack.length) {
+                    case 0 :
+                        this.state.list.label = "Formation"
+                        break;
+                    case 1 :
+                        this.state.list.label = "Formation détaillée"
+                        break;
+                    default :
+                        this.state.list.label = "Formation très détaillée"
+                        break;
+                }
+                this.update()
+            },
+            async getFiliere() {
+                this.update({loading : true})
+                let data =  await fetchFiliere()
+                this.state.list.formations = data
+                this.update({loading : false})
+            },
+            async getAllFormations() {
+                this.update({loading : true})
+                let data =  await fetchAllFormations()
+                this.state.list.allFormations = data
+                this.update({loading : false})
+            },
+            async getFiliereDetail(filiere) {
+                this.update({loading : true})
+                let data =  await fetchFiliereDetail(filiere)
+                this.state.list.formations = data
+                this.update({loading : false})
+            },
+            async getFiliereTDetail(filiere, filiere_detail) {
+                this.update({loading : true})
+                let data = await fetchFiliereTDetail(filiere, filiere_detail)
+                this.state.list.formations = data
+                this.update({loading : false})
+            },
+            async getInfosForma(filiere, filiere_detail, filiere_t_detail, count) {
+
+                this.update({loading : true})
+                this.state.recap = filiere_t_detail
+               
+                let data = await fetchInfosFormation(filiere, filiere_detail, filiere_t_detail, count)
+                let count_etablissement = data.nhits
+                let facet_group = data.facet_groups
+
+                let newRecap = formationSummary(facet_group, count_etablissement)
+               
+                this.update({recap_data : newRecap, table_data : data.records})
+                this.update({loading : false})
+            },
+            filterIndex(data) {
+                return data.map((obj,index) => ({ ...obj, "index" : index}));
+            }, 
+            toggleMode() {
+                toggleLight()
+            }
+        }
+    </script>
+        <style>
+            .fixed {
+                height: 2rem;
+                width: 2rem;
+                position: fixed;
+                bottom: 2.5rem;
+                right: 4rem;
+                z-index: 900;
+            }
+        </style>
+</my-app>

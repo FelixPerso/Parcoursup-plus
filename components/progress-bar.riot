@@ -1,0 +1,25 @@
+<progress-bar>
+
+    <div class="columns is-mobile is-vcentered">
+        <div class="column is-narrow pr-1">
+            <p class="has-text-right has-text-weight-bold"> ({props.select >= 0 ? `${props.select}%` : "NR"})</p>
+        </div>
+        <div class="column pl-0">
+            <progress class="progress {this.color(props.select)}" value={ 100 - props.select} max="100"></progress>
+        </div>
+    </div>
+    <script>
+        export default {
+            color(number) {
+                if(number < 0)
+                    return
+                if(number < 20) 
+                    return "is-danger";
+                else if(number  < 50)
+                    return "is-warning";
+                else
+                    return "is-info";
+            }
+        }
+    </script>
+</progress-bar>

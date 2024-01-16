@@ -1,0 +1,39 @@
+<formation-recap>
+    <!-- Récapitulatif de la formation -->
+    <div class="box p-5 my-5">
+        <!-- Récapitulatif -->
+        <div class="recap box has-background-light has-text-weight-normal">
+            <p>Moyenne des admis :<span class="is-pulled-right">{props.data?.moyenne}</span></p>
+            <p>Nombre de formations :<span class="is-pulled-right">{props.data?.nb_form}</span></p>
+            <p>Capacité :<span class="is-pulled-right">{props.data?.capac}</span></p>
+            <div class="is-flex m-0">
+                <p class="column is-5 p-0">Sélectivité :</p>
+                <div class="column p-0"><progress-bar select="{props.data?.select}"/></div>
+            </div>
+        </div>
+        <!-- Graphiques répartitions -->
+        <bar-chart elements={props.data?.genre?.elements} label={props.data?.genre?.label}/>
+        <bar-chart elements={props.data?.bac?.elements} label={props.data?.bac?.label}/>
+        <bar-chart elements={props.data?.mention?.elements} label={props.data?.mention?.label}/>
+    </div>
+
+    <script>
+
+        import BarChart from "./bar-chart.riot"
+        import ProgressBar from "./progress-bar.riot"
+
+        export default {
+            components : {
+                BarChart,
+                ProgressBar
+            }
+        }
+
+    </script>
+    <style>
+        .recap {
+            max-width: 50%;
+            margin : 0 auto;
+        }
+    </style>
+</formation-recap>
