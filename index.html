@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Aide Parcoursup</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <link href="css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/light-mode.css" data-theme="light" disabled>
+    <link rel="stylesheet" href="css/dark-mode.css" data-theme="dark" disabled>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE40xsADsfeQoEypE+enwcOiGjk/bSuGGKHEyjSoQ1zVisanQ==" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <script src="./js/leaflet.js"></script>
+    <script src="./js/leaflet.markercluster.js"></script>
+    <script>
+        let storage = localStorage.getItem("theme")
+        let themes = document.querySelectorAll('link[data-theme]');
+        if(storage) {
+            let theme = storage == themes[0].dataset.theme ? themes[0] : themes[1]
+            theme.disabled = false
+        }else {
+            themes[0].disabled = false;
+            localStorage.setItem("theme", "light")
+        }
+        window.addEventListener("load", (event) => {
+            if(storage == "dark")
+                document.getElementById("switch").checked = true 
+        });
+    </script>
+</head>
+
+<body>
+    
+    <my-app></my-app>
+
+    <script src="js/app.js"></script>
+
+</body>
+
+</html>
